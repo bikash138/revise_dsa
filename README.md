@@ -6,6 +6,8 @@ A Next.js App Router project configured with TypeScript, Tailwind CSS, shadcn/ui
 
 1. Copy `.env.example` to `.env.local` and set a real PostgreSQL connection string, a random Better Auth secret, and your Google OAuth client ID and client secret. This workspace already has ignored local environment files configured.
 
+   Server environment variables are validated with Zod. The application fails during startup or build when a required value is missing, malformed, or still contains a documented placeholder.
+
 2. Install dependencies. The postinstall script generates Prisma Client:
 
    ```bash
@@ -31,6 +33,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ```bash
 pnpm lint          # Run ESLint
 pnpm build         # Create a production build
+pnpm db:check      # Verify PostgreSQL connectivity with a test query
 pnpm db:generate   # Regenerate Prisma Client
 pnpm db:migrate    # Apply/create development migrations
 pnpm db:deploy     # Apply pending migrations in production
