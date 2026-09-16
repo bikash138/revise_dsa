@@ -37,8 +37,6 @@ model User {
   sessions      Session[]
   accounts      Account[]
   questions     Question[]
-  topics        Topic[]
-  patterns      Pattern[]
 
   @@unique([email])
   @@map("user")
@@ -149,25 +147,19 @@ model Revision {
 
 model Topic {
   id        String          @id @default(cuid())
-  userId    String
-  name      String
+  name      String          @unique
   createdAt DateTime        @default(now())
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions QuestionTopic[]
 
-  @@unique([userId, name])
   @@map("topic")
 }
 
 model Pattern {
   id        String            @id @default(cuid())
-  userId    String
-  name      String
+  name      String            @unique
   createdAt DateTime          @default(now())
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions QuestionPattern[]
 
-  @@unique([userId, name])
   @@map("pattern")
 }
 

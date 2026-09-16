@@ -20,7 +20,16 @@ A Next.js App Router project configured with TypeScript, Tailwind CSS, shadcn/ui
    pnpm db:migrate
    ```
 
-4. Start the development server:
+4. Seed the predefined platforms, topics, and patterns:
+
+   ```bash
+   pnpm db:seed
+   ```
+
+   Platforms, topics, and patterns are global predefined data and do not depend
+   on an application user existing first.
+
+5. Start the development server:
 
    ```bash
    pnpm dev
@@ -37,8 +46,13 @@ pnpm db:check      # Verify PostgreSQL connectivity with a test query
 pnpm db:generate   # Regenerate Prisma Client
 pnpm db:migrate    # Apply/create development migrations
 pnpm db:deploy     # Apply pending migrations in production
+pnpm db:seed       # Insert predefined platforms, topics, and patterns
 pnpm db:studio     # Open Prisma Studio
 ```
+
+The predefined values live in `prisma/seed-data`. Add a platform, topic, or
+pattern to its corresponding file and rerun `pnpm db:seed`. The seed is safe to
+rerun and skips data that already exists.
 
 Better Auth is mounted at `/api/auth/*` and configured for Google sign-in only. The browser client is exported from `src/lib/auth-client.ts`.
 
