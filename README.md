@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Revise DSA
 
-## Getting Started
+A Next.js App Router project configured with TypeScript, Tailwind CSS, shadcn/ui, Prisma ORM, PostgreSQL, and Better Auth.
 
-First, run the development server:
+## Local setup
+
+1. Copy `.env.example` to `.env.local` and set a real PostgreSQL connection string, a random Better Auth secret, and your Google OAuth client ID and client secret. This workspace already has ignored local environment files configured.
+
+2. Install dependencies. The postinstall script generates Prisma Client:
+
+   ```bash
+   pnpm install
+   ```
+
+3. Apply the checked-in Better Auth database migration:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+4. Start the development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Useful commands
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm lint          # Run ESLint
+pnpm build         # Create a production build
+pnpm db:generate   # Regenerate Prisma Client
+pnpm db:migrate    # Apply/create development migrations
+pnpm db:deploy     # Apply pending migrations in production
+pnpm db:studio     # Open Prisma Studio
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Better Auth is mounted at `/api/auth/*` and configured for Google sign-in only. The browser client is exported from `src/lib/auth-client.ts`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+In Google Cloud Console, create an OAuth client for a web application and add this local authorized redirect URI:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+http://localhost:3000/api/auth/callback/google
+```
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For production, add `https://your-domain.com/api/auth/callback/google` and set `BETTER_AUTH_URL` to the same production origin.
