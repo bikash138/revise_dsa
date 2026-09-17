@@ -1,6 +1,9 @@
 # Revise DSA
 
-A Next.js App Router project configured with TypeScript, Tailwind CSS, shadcn/ui, Prisma ORM, PostgreSQL, and Better Auth.
+A personal DSA practice tracker that schedules question revisions after 3, 5,
+7, 15, and 30 days and records the result, mistakes, and confidence after each
+attempt. It uses Next.js App Router, TypeScript, shadcn/ui, Prisma, PostgreSQL,
+and Google authentication through Better Auth.
 
 ## Local setup
 
@@ -14,7 +17,7 @@ A Next.js App Router project configured with TypeScript, Tailwind CSS, shadcn/ui
    pnpm install
    ```
 
-3. Apply the checked-in Better Auth database migration:
+3. Apply all checked-in database migrations:
 
    ```bash
    pnpm db:migrate
@@ -63,3 +66,51 @@ http://localhost:3000/api/auth/callback/google
 ```
 
 For production, add `https://your-domain.com/api/auth/callback/google` and set `BETTER_AUTH_URL` to the same production origin.
+
+## Server-side application layer
+
+Mutations are grouped by domain under `src/actions/questions` and
+`src/actions/revision`. Each domain contains:
+
+- `*.validation.ts` for its Zod input schemas.
+- `*.repo.ts` for Prisma database calls only.
+- `*.actions.ts` for exported async Server Actions containing authentication,
+  validation, and business logic. Each repository instance remains private to
+  its action module.
+
+Question actions create, update, archive, restore, and delete questions.
+Revision actions complete, edit, and reopen revision attempts.
+
+- `src/lib/dsa` contains the fixed revision schedule and confidence rules.
+- `src/queries` contains server-only reads for the dashboard, question list,
+  question details, and form options.
+
+The global platform, topic, and pattern options use the Next.js `use cache`
+directive with the built-in `hours` cache profile. Authentication runs before
+entering the cached function, so session headers are never included in the
+shared cache. The first request reads the options from PostgreSQL; subsequent
+requests can reuse the cached result until Next.js revalidates it.
+
+Every action validates its input, derives the user ID from the Better Auth
+session, and checks ownership in the database. Client-provided user IDs are
+never accepted. Question mutations rely on PostgreSQL foreign keys to validate
+platform, topic, and pattern IDs instead of issuing three preliminary lookup
+queries.
+
+Creating a question also creates five revision records scheduled 3, 5, 7, 15,
+and 30 days after `firstSolvedOn`. Revision dates and the dashboard's current
+day are calculated using the `Asia/Kolkata` timezone. Confidence starts at
+`NEW` and is recalculated whenever a revision is completed, edited, or reopened:
+
+- Latest result `COULD_NOT_SOLVE`: `NEEDS_PRACTICE`
+- Two latest results `SOLVED_INDEPENDENTLY`: `STRONG`
+- Any other completed progress: `IMPROVING`
+- No completed revisions: `NEW`
+
+Server Actions accept plain serializable objects and return a shared
+`ActionResult<T>` shape with either `data` or a safe error message and optional
+field errors. The `runServerAction` utility performs Zod parsing, formats
+validation errors, catches expected and unexpected failures, maps Prisma
+errors, and constructs the final result shape. Action files therefore contain
+only their domain workflow. Reads remain normal server-only functions rather
+than Server Actions.
