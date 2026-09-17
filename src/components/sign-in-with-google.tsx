@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { GoogleMark } from "@/components/auth/google-mark";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
 export function SignInWithGoogle() {
@@ -21,11 +23,15 @@ export function SignInWithGoogle() {
       });
 
       if (result.error) {
-        setError(result.error.message ?? "Unable to start Google sign-in.");
+        const message = result.error.message ?? "Unable to start Google sign-in.";
+        setError(message);
+        toast.error(message);
         setIsPending(false);
       }
     } catch {
-      setError("Unable to connect to Google. Please try again.");
+      const message = "Unable to connect to Google. Please try again.";
+      setError(message);
+      toast.error(message);
       setIsPending(false);
     }
   }
@@ -33,13 +39,13 @@ export function SignInWithGoogle() {
   return (
     <div className="space-y-3">
       <Button
-        className="h-12 w-full rounded-xl border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-800 shadow-sm hover:bg-neutral-50"
+        className="h-12 w-full rounded-xl border-white/10 bg-[#1b231f] px-4 text-sm font-semibold text-neutral-100 shadow-sm hover:bg-[#222c27]"
         disabled={isPending}
         onClick={handleSignIn}
         size="lg"
         variant="outline"
       >
-        <GoogleMark />
+        {isPending ? <Spinner /> : <GoogleMark />}
         {isPending ? "Connecting to Google…" : "Continue with Google"}
       </Button>
       {error ? (

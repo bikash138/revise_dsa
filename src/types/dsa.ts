@@ -52,9 +52,7 @@ export type RevisionQueueItem = RevisionView & {
     QuestionView,
     "confidence" | "difficulty" | "id" | "title" | "url"
   > & {
-    patterns: QuestionView["patterns"];
     platform: PlatformOption;
-    topics: QuestionView["topics"];
   };
 };
 
@@ -75,4 +73,4 @@ export type DashboardView = {
   totalQuestions: number;
 };
 
-export type RevisionQueueFilter = "due" | "upcoming" | "completed";
+export type RevisionQueueFilter = "today" | "upcoming" | "completed" | "due";

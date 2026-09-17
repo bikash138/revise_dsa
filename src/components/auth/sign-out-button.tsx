@@ -1,8 +1,9 @@
 "use client";
 
-import { LoaderCircle, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { signOutAction } from "@/actions/auth.actions";
 import {
@@ -17,8 +18,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
-export function SignOutButton() {
+export function SignOutButton({ sidebar = false }: { sidebar?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -30,9 +33,11 @@ export function SignOutButton() {
 
       if (!result.success) {
         setError(result.error);
+        toast.error(result.error);
         return;
       }
 
+      toast.success("Signed out successfully.");
       router.replace("/sign-in");
       router.refresh();
     });
@@ -40,9 +45,22 @@ export function SignOutButton() {
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger render={<Button className="rounded-xl" variant="outline" />}>
+      <AlertDialogTrigger
+        render={
+          <Button
+            className={cn(
+              "cursor-pointer rounded-xl text-rose-700 hover:bg-rose-50 hover:text-rose-800",
+              sidebar &&
+                "w-full justify-start border border-rose-400/15 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 hover:text-rose-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
+            )}
+            variant={sidebar ? "ghost" : "outline"}
+          />
+        }
+      >
         <LogOut />
-        Sign out
+        <span className={cn(sidebar && "group-data-[collapsible=icon]:hidden")}>
+          Sign out
+        </span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -52,19 +70,19 @@ export function SignOutButton() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p className="rounded-lg bg-red-400/10 px-3 py-2 text-sm text-red-300">
             {error}
           </p>
         ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            className="bg-red-700 text-white hover:bg-red-800"
+            className="cursor-pointer bg-red-700 text-white hover:bg-red-800"
             disabled={isPending}
             onClick={handleSignOut}
           >
             {isPending ? (
-              <LoaderCircle className="animate-spin" />
+              <Spinner />
             ) : (
               <LogOut />
             )}

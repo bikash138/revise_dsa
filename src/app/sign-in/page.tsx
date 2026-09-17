@@ -3,11 +3,9 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { RevisionCadence } from "@/components/auth/revision-cadence";
-import {
-  SignInCard,
-  SignInCardSkeleton,
-} from "@/components/auth/sign-in-card";
+import { SignInCard } from "@/components/auth/sign-in-card";
 import { BrandMark } from "@/components/brand-mark";
+import { SignInCardSkeleton } from "@/components/skeletons/sign-in-card-skeleton";
 import { getServerSession } from "@/lib/server-session";
 
 export const metadata: Metadata = {
@@ -27,7 +25,7 @@ async function SignInGate() {
 
 export default function SignInPage() {
   return (
-    <main className="grid min-h-svh bg-[#f6f7f3] lg:grid-cols-[1.08fr_0.92fr]">
+    <main className="grid min-h-svh bg-[#151b18] text-neutral-100 lg:grid-cols-[1.08fr_0.92fr]">
       <section className="relative hidden overflow-hidden bg-[#10221b] px-12 py-10 text-white lg:flex lg:flex-col xl:px-20 xl:py-14">
         <div className="absolute -left-32 bottom-0 size-96 rounded-full bg-emerald-400/10 blur-3xl" />
         <div className="absolute -right-36 -top-24 size-96 rounded-full bg-lime-300/[0.06] blur-3xl" />
@@ -59,8 +57,8 @@ export default function SignInPage() {
       </section>
 
       <section className="relative flex items-center justify-center px-6 py-10 sm:px-12 lg:px-16">
-        <BrandMark className="absolute left-6 top-7 lg:hidden" />
-        <div className="absolute right-0 top-0 size-64 rounded-full bg-emerald-900/[0.035] blur-3xl" />
+        <BrandMark className="absolute left-6 top-7 lg:hidden" inverted />
+        <div className="absolute right-0 top-0 size-64 rounded-full bg-emerald-400/[0.05] blur-3xl" />
         <Suspense fallback={<SignInCardSkeleton />}>
           <SignInGate />
         </Suspense>

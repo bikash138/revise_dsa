@@ -9,7 +9,14 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@/lib/utils";
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 
 const navigationItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Overview", exact: true },
@@ -25,64 +32,46 @@ const navigationItems = [
   },
 ];
 
-export function DashboardNav({ mobile = false }: { mobile?: boolean }) {
+export function DashboardNav() {
   const pathname = usePathname();
 
-  if (mobile) {
-    return (
-      <nav className="flex gap-1 overflow-x-auto px-4 pb-3" aria-label="Main navigation">
-        {navigationItems.map(({ exact, href, icon: Icon, label }) => {
-          const active = exact ? pathname === href : pathname.startsWith(href);
-          return (
-            <Link
-              className={cn(
-                "inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium",
-                active
-                  ? "bg-emerald-950 text-white"
-                  : "text-neutral-600 hover:bg-neutral-100",
-              )}
-              href={href}
-              key={href}
-            >
-              <Icon className="size-4" />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-    );
-  }
-
   return (
-    <nav className="space-y-1" aria-label="Main navigation">
-      {navigationItems.map(({ exact, href, icon: Icon, label }) => {
-        const active = exact ? pathname === href : pathname.startsWith(href);
-        return (
-          <Link
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-              active
-                ? "bg-emerald-950 text-white shadow-sm"
-                : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950",
-            )}
-            href={href}
-            key={href}
-          >
-            <Icon className="size-[18px]" />
-            {label}
-          </Link>
-        );
-      })}
+    <SidebarGroup>
+      <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu className="gap-1">
+          {navigationItems.map(({ exact, href, icon: Icon, label }) => {
+            const active = exact
+              ? pathname === href
+              : pathname.startsWith(href);
 
-      <div className="pt-4">
-        <Link
-          className="flex items-center justify-center gap-2 rounded-xl bg-emerald-200 px-3 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-300"
-          href="/dashboard/questions/new"
-        >
-          <Plus className="size-4" />
-          Add question
-        </Link>
-      </div>
-    </nav>
+            return (
+              <SidebarMenuItem key={href}>
+                <SidebarMenuButton
+                  className="h-10 rounded-lg px-3"
+                  isActive={active}
+                  render={<Link href={href} />}
+                  tooltip={label}
+                >
+                  <Icon />
+                  <span>{label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+
+          <SidebarMenuItem className="mt-3">
+            <SidebarMenuButton
+              className="h-10 rounded-lg bg-emerald-400/15 px-3 text-emerald-200 hover:bg-emerald-400/25 hover:text-emerald-100"
+              render={<Link href="/dashboard/questions/new" />}
+              tooltip="Add question"
+            >
+              <Plus />
+              <span>Add question</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }

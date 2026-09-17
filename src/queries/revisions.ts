@@ -17,7 +17,11 @@ export async function getRevisions(filter: RevisionQueueFilter) {
         : {
             completedAt: null,
             scheduledFor:
-              filter === "due" ? { lte: today } : { gt: today },
+              filter === "today"
+                ? today
+                : filter === "due"
+                  ? { lt: today }
+                  : { gt: today },
           }),
     },
     include: {
@@ -26,10 +30,8 @@ export async function getRevisions(filter: RevisionQueueFilter) {
           confidence: true,
           difficulty: true,
           id: true,
-          patterns: { include: { pattern: true } },
           platform: true,
           title: true,
-          topics: { include: { topic: true } },
           url: true,
         },
       },

@@ -23,11 +23,7 @@ export async function getDashboardData() {
       },
       include: {
         question: {
-          include: {
-            platform: true,
-            topics: { include: { topic: true } },
-            patterns: { include: { pattern: true } },
-          },
+          include: { platform: true },
         },
       },
       orderBy: [{ scheduledFor: "asc" }, { revisionNumber: "asc" }],

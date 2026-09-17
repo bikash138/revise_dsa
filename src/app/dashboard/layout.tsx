@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import {
-  DashboardFrame,
-  DashboardFrameSkeleton,
-} from "@/components/dashboard/dashboard-frame";
+import { DashboardFrame } from "@/components/dashboard/dashboard-frame";
+import { DashboardFrameSkeleton } from "@/components/skeletons/dashboard-frame-skeleton";
 import { getServerSession } from "@/lib/server-session";
 
 async function AuthenticatedDashboardLayout({
@@ -20,7 +18,11 @@ async function AuthenticatedDashboardLayout({
 
   return (
     <DashboardFrame
-      user={{ email: session.user.email, name: session.user.name }}
+      user={{
+        email: session.user.email,
+        image: session.user.image ?? null,
+        name: session.user.name,
+      }}
     >
       {children}
     </DashboardFrame>

@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 const revisionFilters = new Set<RevisionQueueFilter>([
+  "today",
   "upcoming",
   "completed",
   "due",
@@ -22,7 +23,7 @@ export default async function RevisionsPage({
   const requestedFilter = (await searchParams).filter;
   const filter = revisionFilters.has(requestedFilter as RevisionQueueFilter)
     ? (requestedFilter as RevisionQueueFilter)
-    : "upcoming";
+    : "today";
   const revisions = await getRevisions(filter);
 
   return <RevisionQueue filter={filter} revisions={revisions} />;

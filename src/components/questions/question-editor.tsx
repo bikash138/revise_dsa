@@ -42,7 +42,7 @@ function EditorLayout({
         <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
           {title}
         </h1>
-        <p className="mt-3 text-neutral-600">{description}</p>
+        <p className="mt-3 text-neutral-400">{description}</p>
       </header>
       {children}
     </div>

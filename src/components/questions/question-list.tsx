@@ -4,19 +4,30 @@ import {
   Archive,
   ArchiveRestore,
   ArrowUpRight,
-  LoaderCircle,
+  ChevronDown,
   Search,
 } from "lucide-react";
 import Form from "next/form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import {
   archiveQuestionAction,
   restoreQuestionAction,
 } from "@/actions/questions/question.actions";
+import { PlatformIcon } from "@/components/platform-icon";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import { ConfidenceLevel, Difficulty } from "@/generated/prisma/enums";
 import {
   confidenceLabels,
@@ -28,10 +39,10 @@ import type { QuestionFilters } from "@/queries/questions";
 import type { PlatformOption, QuestionView } from "@/types/dsa";
 
 const confidenceStyles = {
-  [ConfidenceLevel.NEW]: "bg-neutral-100 text-neutral-700",
-  [ConfidenceLevel.NEEDS_PRACTICE]: "bg-rose-100 text-rose-800",
-  [ConfidenceLevel.IMPROVING]: "bg-amber-100 text-amber-800",
-  [ConfidenceLevel.STRONG]: "bg-emerald-100 text-emerald-800",
+  [ConfidenceLevel.NEW]: "bg-white/10 text-neutral-300",
+  [ConfidenceLevel.NEEDS_PRACTICE]: "bg-rose-400/15 text-rose-300",
+  [ConfidenceLevel.IMPROVING]: "bg-amber-400/15 text-amber-300",
+  [ConfidenceLevel.STRONG]: "bg-emerald-400/15 text-emerald-300",
 };
 
 const difficultyStyles = {
@@ -59,7 +70,7 @@ export function QuestionList({
           <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
             Every problem, organized.
           </h1>
-          <p className="mt-3 text-neutral-600">
+          <p className="mt-3 text-neutral-400">
             Search your solved questions and see where each one stands.
           </p>
         </div>
@@ -73,20 +84,26 @@ export function QuestionList({
 
       <Form
         action="/dashboard/questions"
-        className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-sm"
+        className="rounded-2xl border border-white/8 bg-[#1b231f] p-4 shadow-sm"
       >
         <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_repeat(3,minmax(140px,0.35fr))]">
           <label className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-500" />
             <input
-              className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 pl-10 pr-3 text-sm outline-none transition focus:border-emerald-700 focus:ring-3 focus:ring-emerald-700/10"
+              className="h-11 w-full rounded-xl border border-white/10 bg-[#111714] pl-10 pr-3 text-sm text-neutral-100 outline-none transition placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-500/10"
               defaultValue={filters.search}
               name="search"
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  event.currentTarget.form?.requestSubmit();
+                }
+              }}
               placeholder="Search title or question number"
               type="search"
             />
           </label>
-          <FilterSelect
+          <FilterDropdown
             defaultValue={filters.difficulty}
             label="All difficulties"
             name="difficulty"
@@ -95,7 +112,7 @@ export function QuestionList({
               value,
             }))}
           />
-          <FilterSelect
+          <FilterDropdown
             defaultValue={filters.confidence}
             label="All confidence"
             name="confidence"
@@ -104,7 +121,7 @@ export function QuestionList({
               value,
             }))}
           />
-          <FilterSelect
+          <FilterDropdown
             defaultValue={filters.platformId}
             label="All platforms"
             name="platformId"
@@ -115,19 +132,18 @@ export function QuestionList({
           />
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-neutral-600">
-            <input
-              className="size-4 rounded border-neutral-300 accent-emerald-900"
+          <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-neutral-400">
+            <Checkbox
+              className="data-checked:border-emerald-900 data-checked:bg-emerald-900"
               defaultChecked={filters.archived}
               name="archived"
-              type="checkbox"
               value="true"
             />
             Show archived questions
           </label>
           <div className="flex gap-2">
             <Link
-              className="inline-flex h-9 items-center rounded-xl px-3 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+              className="inline-flex h-9 items-center rounded-xl px-3 text-sm font-medium text-neutral-400 hover:bg-white/6 hover:text-neutral-100"
               href="/dashboard/questions"
             >
               Clear
@@ -150,9 +166,9 @@ export function QuestionList({
           ))}
         </div>
       ) : (
-        <div className="rounded-3xl border border-dashed border-neutral-300 bg-white/60 px-6 py-16 text-center">
+        <div className="rounded-3xl border border-dashed border-white/15 bg-[#18201c] px-6 py-16 text-center">
           <h2 className="text-lg font-semibold">No questions found</h2>
-          <p className="mt-2 text-sm text-neutral-500">
+          <p className="mt-2 text-sm text-neutral-400">
             Try changing the filters or add your first question.
           </p>
         </div>
@@ -184,19 +200,22 @@ function QuestionCard({
 
       if (!result.success) {
         setError(result.error);
+        toast.error(result.error);
         return;
       }
 
+      toast.success(result.message);
       router.refresh();
     });
   }
 
   return (
-    <article className="group rounded-2xl border border-black/[0.07] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="group rounded-2xl border border-white/[0.08] bg-[#1b231f] p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-white/15 hover:shadow-md">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-400">
+              <PlatformIcon slug={question.platform.slug} />
               {question.platform.name}
               {question.platformQuestionNumber
                 ? ` · ${question.platformQuestionNumber}`
@@ -220,7 +239,7 @@ function QuestionCard({
         </div>
         <a
           aria-label={`Open ${question.title} on ${question.platform.name}`}
-          className="grid size-9 shrink-0 place-items-center rounded-xl border border-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-950"
+          className="grid size-9 shrink-0 place-items-center rounded-xl border border-white/10 text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-100"
           href={question.url}
           rel="noreferrer"
           target="_blank"
@@ -229,27 +248,8 @@ function QuestionCard({
         </a>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        {question.topics.slice(0, 3).map(({ topic }) => (
-          <span
-            className="rounded-lg bg-neutral-100 px-2.5 py-1 text-xs text-neutral-600"
-            key={topic.id}
-          >
-            {topic.name}
-          </span>
-        ))}
-        {question.patterns.slice(0, 2).map(({ pattern }) => (
-          <span
-            className="rounded-lg bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700"
-            key={pattern.id}
-          >
-            {pattern.name}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-6 flex items-end justify-between gap-4 border-t border-black/[0.06] pt-4">
-        <div className="text-xs text-neutral-500">
+      <div className="mt-5 flex items-end justify-between gap-4 border-t border-white/[0.08] pt-4">
+        <div className="text-xs text-neutral-400">
           <p>
             <span
               className={cn(
@@ -275,7 +275,7 @@ function QuestionCard({
           variant="ghost"
         >
           {isPending ? (
-            <LoaderCircle className="animate-spin" />
+            <Spinner />
           ) : archived ? (
             <ArchiveRestore />
           ) : (
@@ -288,7 +288,7 @@ function QuestionCard({
   );
 }
 
-function FilterSelect({
+function FilterDropdown({
   defaultValue,
   label,
   name,
@@ -299,28 +299,48 @@ function FilterSelect({
   name: string;
   options: Array<{ label: string; value: string }>;
 }) {
-  return (
-    <select
-      className="h-11 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none focus:border-emerald-700 focus:ring-3 focus:ring-emerald-700/10"
-      defaultValue={defaultValue ?? ""}
-      name={name}
-    >
-      <option value="">{label}</option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  );
-}
+  const [value, setValue] = useState(defaultValue ?? "");
+  const selectedLabel =
+    options.find((option) => option.value === value)?.label ?? label;
 
-export function QuestionListSkeleton() {
   return (
-    <div className="grid animate-pulse gap-4 xl:grid-cols-2">
-      {[0, 1, 2, 3].map((item) => (
-        <div className="h-60 rounded-2xl bg-neutral-200/70" key={item} />
-      ))}
-    </div>
+    <>
+      <input name={name} type="hidden" value={value} />
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              className="h-11 w-full justify-between rounded-xl border-white/10 bg-[#111714] px-3 font-normal text-neutral-300 shadow-none hover:bg-white/[0.06] hover:text-neutral-100"
+              type="button"
+              variant="outline"
+            />
+          }
+        >
+          <span className="truncate">{selectedLabel}</span>
+          <ChevronDown className="size-4 text-neutral-400" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuRadioGroup
+            onValueChange={(nextValue) =>
+              setValue(nextValue === "__all__" ? "" : nextValue)
+            }
+            value={value || "__all__"}
+          >
+            <DropdownMenuRadioItem className="py-2" value="__all__">
+              {label}
+            </DropdownMenuRadioItem>
+            {options.map((option) => (
+              <DropdownMenuRadioItem
+                className="py-2"
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }

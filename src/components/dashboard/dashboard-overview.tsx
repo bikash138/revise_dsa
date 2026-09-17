@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { PlatformIcon } from "@/components/platform-icon";
 import {
   confidenceLabels,
   difficultyLabels,
@@ -16,9 +17,9 @@ import type { DashboardView } from "@/types/dsa";
 
 const statStyles = [
   "bg-[#173c2d] text-white",
-  "bg-[#dff0e4] text-emerald-950",
-  "bg-[#fff0d7] text-amber-950",
-  "bg-white text-neutral-950",
+  "bg-[#1b2d24] text-emerald-200",
+  "bg-[#2b271b] text-amber-200",
+  "bg-[#202824] text-neutral-100",
 ];
 
 export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
@@ -55,7 +56,7 @@ export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
           <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
             Keep the momentum going.
           </h1>
-          <p className="mt-3 text-neutral-600">
+          <p className="mt-3 text-neutral-400">
             Start with what is due, then strengthen the patterns that need work.
           </p>
         </div>
@@ -71,7 +72,7 @@ export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map(({ icon: Icon, label, value }, index) => (
           <article
-            className={`rounded-2xl border border-black/[0.06] p-5 shadow-sm ${statStyles[index]}`}
+            className={`rounded-2xl border border-white/[0.08] p-5 shadow-sm ${statStyles[index]}`}
             key={label}
           >
             <div className="flex items-start justify-between">
@@ -86,11 +87,11 @@ export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <section className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-sm sm:p-7">
+        <section className="rounded-3xl border border-white/[0.08] bg-[#1b231f] p-6 shadow-sm sm:p-7">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold tracking-tight">Due revisions</h2>
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-neutral-400">
                 {dashboard.dueRevisions.length
                   ? "Your highest-priority practice for today."
                   : "Nothing is waiting for you right now."}
@@ -115,7 +116,11 @@ export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
                   <p className="truncate font-semibold group-hover:text-emerald-800">
                     {revision.question.title}
                   </p>
-                  <p className="mt-1 text-xs text-neutral-500">
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-neutral-400">
+                    <PlatformIcon
+                      className="size-3.5"
+                      slug={revision.question.platform.slug}
+                    />
                     Revision {revision.revisionNumber} · {revision.question.platform.name}
                   </p>
                 </div>
@@ -125,14 +130,14 @@ export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
               </Link>
             ))}
             {dashboard.dueRevisions.length === 0 ? (
-              <div className="rounded-2xl bg-[#f4f7f4] px-5 py-8 text-center text-sm text-neutral-600">
+              <div className="rounded-2xl bg-[#141b18] px-5 py-8 text-center text-sm text-neutral-400">
                 You’re all caught up. Add a question or check upcoming revisions.
               </div>
             ) : null}
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-sm sm:p-7">
+        <section className="rounded-3xl border border-white/[0.08] bg-[#1b231f] p-6 shadow-sm sm:p-7">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold tracking-tight">Recently added</h2>
             <Link
@@ -145,13 +150,19 @@ export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
           <div className="mt-6 space-y-3">
             {dashboard.recentQuestions.map((question) => (
               <Link
-                className="block rounded-2xl border border-black/[0.06] p-4 transition-colors hover:bg-neutral-50"
+                className="block rounded-2xl border border-white/[0.08] bg-[#18201c] p-4 transition-colors hover:bg-[#202a25]"
                 href={`/dashboard/questions/${question.id}`}
                 key={question.id}
               >
                 <p className="truncate text-sm font-semibold">{question.title}</p>
-                <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-500">
-                  <span>{question.platform.name}</span>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-400">
+                  <span className="inline-flex items-center gap-1.5">
+                    <PlatformIcon
+                      className="size-3.5"
+                      slug={question.platform.slug}
+                    />
+                    {question.platform.name}
+                  </span>
                   <span>·</span>
                   <span>{difficultyLabels[question.difficulty]}</span>
                   <span>·</span>
@@ -160,27 +171,13 @@ export function DashboardOverview({ dashboard }: { dashboard: DashboardView }) {
               </Link>
             ))}
             {dashboard.recentQuestions.length === 0 ? (
-              <p className="rounded-2xl bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
+              <p className="rounded-2xl bg-[#141b18] px-4 py-8 text-center text-sm text-neutral-400">
                 Your recently added questions will appear here.
               </p>
             ) : null}
           </div>
         </section>
       </div>
-    </div>
-  );
-}
-
-export function DashboardOverviewSkeleton() {
-  return (
-    <div className="animate-pulse space-y-9">
-      <div className="h-24 max-w-2xl rounded-2xl bg-neutral-200/70" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[0, 1, 2, 3].map((item) => (
-          <div className="h-32 rounded-2xl bg-neutral-200/70" key={item} />
-        ))}
-      </div>
-      <div className="h-80 rounded-3xl bg-neutral-200/70" />
     </div>
   );
 }

@@ -1,15 +1,25 @@
 "use client";
 
-import { ArrowLeft, Check, LoaderCircle } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import {
   createQuestionAction,
   updateQuestionAction,
 } from "@/actions/questions/question.actions";
+import { SolvedDatePicker } from "@/components/questions/solved-date-picker";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import { Difficulty } from "@/generated/prisma/enums";
 import {
   difficultyLabels,
@@ -117,16 +127,18 @@ export function QuestionForm({
           fieldErrors: result.fieldErrors,
           message: result.error,
         });
+        toast.error(result.error);
         return;
       }
 
+      toast.success(result.message);
       router.push(`/dashboard/questions/${result.data.questionId}`);
     });
   }
 
   return (
     <form className="space-y-7" onSubmit={handleSubmit}>
-      <div className="grid gap-6 rounded-3xl border border-black/[0.06] bg-white p-6 shadow-sm sm:p-8 lg:grid-cols-2">
+      <div className="grid gap-6 rounded-3xl border border-white/8 bg-[#1b231f] p-6 shadow-sm sm:p-8 lg:grid-cols-2">
         <FormField
           error={actionError?.fieldErrors?.title?.[0]}
           label="Question title"
@@ -141,7 +153,6 @@ export function QuestionForm({
 
         <FormField
           error={actionError?.fieldErrors?.url?.[0]}
-          hint="LeetCode and GeeksforGeeks links auto-fill the title and platform."
           label="Problem URL"
         >
           <input
@@ -158,18 +169,43 @@ export function QuestionForm({
           error={actionError?.fieldErrors?.platformId?.[0]}
           label="Platform"
         >
-          <select
-            className={inputStyles}
-            onChange={(event) => updateField("platformId", event.target.value)}
-            value={form.platformId}
-          >
-            <option value="">Select a platform</option>
-            {options.platforms.map((platform) => (
-              <option key={platform.id} value={platform.id}>
-                {platform.name}
-              </option>
-            ))}
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  className={cn(
+                    inputStyles,
+                    "justify-between font-normal text-neutral-300",
+                  )}
+                  type="button"
+                  variant="outline"
+                />
+              }
+            >
+              <span className="truncate">
+                {options.platforms.find(
+                  (platform) => platform.id === form.platformId,
+                )?.name ?? "Select a platform"}
+              </span>
+              <ChevronDown className="size-4 text-neutral-400" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuRadioGroup
+                onValueChange={(value) => updateField("platformId", value)}
+                value={form.platformId}
+              >
+                {options.platforms.map((platform) => (
+                  <DropdownMenuRadioItem
+                    className="py-2"
+                    key={platform.id}
+                    value={platform.id}
+                  >
+                    {platform.name}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </FormField>
 
         <FormField
@@ -198,7 +234,7 @@ export function QuestionForm({
                   "h-11 rounded-xl border text-sm font-semibold transition-colors",
                   form.difficulty === difficulty
                     ? "border-emerald-900 bg-emerald-950 text-white"
-                    : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
+                    : "border-white/10 bg-[#111714] text-neutral-400 hover:bg-white/[0.06]",
                 )}
                 key={difficulty}
                 onClick={() => updateField("difficulty", difficulty)}
@@ -212,16 +248,10 @@ export function QuestionForm({
 
         <FormField
           error={actionError?.fieldErrors?.firstSolvedOn?.[0]}
-          hint="Use DD-MM-YYYY"
           label="First solved on"
         >
-          <input
-            className={inputStyles}
-            inputMode="numeric"
-            onChange={(event) =>
-              updateField("firstSolvedOn", event.target.value)
-            }
-            placeholder="17-09-2026"
+          <SolvedDatePicker
+            onChange={(value) => updateField("firstSolvedOn", value)}
             value={form.firstSolvedOn}
           />
         </FormField>
@@ -245,14 +275,14 @@ export function QuestionForm({
       />
 
       {actionError ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300">
           {actionError.message}
         </p>
       ) : null}
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-5 text-sm font-semibold hover:bg-neutral-50"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 text-sm font-semibold hover:bg-white/[0.08]"
           href={
             question
               ? `/dashboard/questions/${question.id}`
@@ -268,7 +298,7 @@ export function QuestionForm({
           type="submit"
         >
           {isPending ? (
-            <LoaderCircle className="animate-spin" />
+            <Spinner />
           ) : (
             <Check />
           )}
@@ -294,7 +324,7 @@ function FormField({
 }) {
   return (
     <label className="space-y-2">
-      <span className="flex items-center justify-between text-sm font-semibold text-neutral-800">
+      <span className="flex items-center justify-between text-sm font-semibold text-neutral-200">
         {label}
         {optional ? (
           <span className="text-xs font-normal text-neutral-400">Optional</span>
@@ -325,7 +355,7 @@ function OptionSection({
   selected: string[];
 }) {
   return (
-    <section className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-3xl border border-white/8 bg-[#1b231f] p-6 shadow-sm sm:p-8">
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -336,7 +366,7 @@ function OptionSection({
               </span>
             ) : null}
           </div>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-neutral-400">
             Select every {label.toLowerCase().slice(0, -1)} that applies.
           </p>
         </div>
@@ -353,7 +383,7 @@ function OptionSection({
                 "rounded-xl border px-3 py-2 text-sm font-medium transition-colors",
                 active
                   ? "border-emerald-900 bg-emerald-950 text-white"
-                  : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100",
+                  : "border-white/10 bg-[#111714] text-neutral-400 hover:bg-white/6",
               )}
               key={option.id}
               onClick={() => onToggle(option.id)}
@@ -371,14 +401,4 @@ function OptionSection({
 }
 
 const inputStyles =
-  "h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-emerald-700 focus:ring-3 focus:ring-emerald-700/10";
-
-export function QuestionFormSkeleton() {
-  return (
-    <div className="animate-pulse space-y-7">
-      <div className="h-80 rounded-3xl bg-neutral-200/70" />
-      <div className="h-56 rounded-3xl bg-neutral-200/70" />
-      <div className="h-56 rounded-3xl bg-neutral-200/70" />
-    </div>
-  );
-}
+  "h-11 w-full rounded-xl border border-white/10 bg-[#111714] px-3 text-sm text-neutral-100 outline-none transition placeholder:text-neutral-500 focus:border-emerald-500 focus:ring-3 focus:ring-emerald-500/10";
