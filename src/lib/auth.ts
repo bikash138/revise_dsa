@@ -1,5 +1,6 @@
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth";
+import { nextCookies } from "better-auth/next-js";
 import { env } from "@/env";
 import { prisma } from "@/lib/prisma";
 
@@ -15,4 +16,6 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
+  // Keep this last so Server Actions can forward Better Auth's Set-Cookie headers.
+  plugins: [nextCookies()],
 });

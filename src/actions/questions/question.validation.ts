@@ -6,9 +6,15 @@ const entityIdSchema = z.string().trim().min(1, "An ID is required.");
 
 const relatedIdsSchema = z
   .array(entityIdSchema)
+  .max(20, "Select no more than 20 options.");
+
+const requiredRelatedIdsSchema = relatedIdsSchema
   .min(1, "Select at least one option.")
-  .max(20, "Select no more than 20 options.")
   .transform((ids) => [...new Set(ids)]);
+
+const optionalRelatedIdsSchema = relatedIdsSchema.transform((ids) => [
+  ...new Set(ids),
+]);
 
 function isValidDateOnly(value: string) {
   const match = /^(\d{2})-(\d{2})-(\d{4})$/.exec(value);
@@ -54,8 +60,8 @@ const questionFieldsSchema = z
       .string()
       .trim()
       .refine(isValidDateOnly, "Use a valid date in DD-MM-YYYY format."),
-    topicIds: relatedIdsSchema,
-    patternIds: relatedIdsSchema,
+    topicIds: requiredRelatedIdsSchema,
+    patternIds: optionalRelatedIdsSchema,
   })
   .strict();
 

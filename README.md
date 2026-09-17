@@ -114,3 +114,27 @@ validation errors, catches expected and unexpected failures, maps Prisma
 errors, and constructs the final result shape. Action files therefore contain
 only their domain workflow. Reads remain normal server-only functions rather
 than Server Actions.
+
+## Frontend application
+
+Authenticated pages live under `/dashboard` and share one responsive navigation
+layout. The current routes are:
+
+- `/dashboard` for progress totals, due revisions, and recently added questions.
+- `/dashboard/questions` for searching and filtering active or archived questions.
+- `/dashboard/questions/new` for adding a question and its five revision dates.
+- `/dashboard/questions/[questionId]` for question details and revision attempts.
+- `/dashboard/questions/[questionId]/edit` for updating question metadata.
+- `/dashboard/revisions` for due, upcoming, and completed revision queues.
+
+App Router pages load authenticated data directly through the server-only read
+functions in `src/queries`; no application-data Route Handlers or client query
+cache are used. Interactive components call the validated Server Actions
+directly. React transition state provides button loaders and inline action
+errors, while route-level `loading.tsx` files provide navigation skeletons.
+Successful mutations revalidate the dashboard, question, and revision paths and
+refresh the current Server Component tree.
+
+The only API Route Handler is Better Auth's required `/api/auth/*` endpoint.
+Sign-out uses a confirmation Alert Dialog and a Server Action. Better Auth's
+`nextCookies` integration forwards the cleared session cookie from that action.

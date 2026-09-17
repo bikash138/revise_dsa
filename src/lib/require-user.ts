@@ -1,8 +1,6 @@
 import "server-only";
 
-import { headers } from "next/headers";
-
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/server-session";
 
 export class AuthenticationError extends Error {
   constructor() {
@@ -12,7 +10,7 @@ export class AuthenticationError extends Error {
 }
 
 export async function requireUser() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
 
   if (!session?.user?.id) {
     throw new AuthenticationError();
